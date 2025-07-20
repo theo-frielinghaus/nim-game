@@ -21,6 +21,10 @@ public class GameResource {
         return gameService.startGame(gameId, true);
     }
 
+    @PUT
+    @Path("{gameID}")
+    public GameStateDTO makeMove(@PathParam("gameID") Long gameID, MoveDTO move) {
+        return gameService.makeMove(gameID, move);
     }
 
     @ServerExceptionMapper({IllegalArgumentException.class})

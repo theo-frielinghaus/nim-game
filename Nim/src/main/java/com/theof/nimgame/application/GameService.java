@@ -55,6 +55,18 @@ public class GameService {
         return new GameStateDTO(gameId, pileAfterMove.stickCount(), gameLog);
     }
 
+    @Transactional
+    public GameStateDTO makeMove(Long gameId, MoveDTO moveDto) {
+        var gameLog = new ArrayList<String>();
+        var game = gameRepository.findById(gameId);
+        var move = new Move(moveDto.sticksToTake());
+
+        game.applyMove(move);
+        gameLog.add(HUMAN_PLAYER_TURN.format(move.sticksToTake()));
+
+        Pile pileAfterComputerMove = computerMakesMove(game, gameLog);
+
+        return new GameStateDTO(gameId, pileAfterComputerMove.stickCount(), gameLog);
     }
 
     private Pile computerMakesMove(Game game, List<String> gameLog) {
