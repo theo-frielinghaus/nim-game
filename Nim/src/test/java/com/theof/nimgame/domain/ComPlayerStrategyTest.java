@@ -37,12 +37,10 @@ class ComPlayerStrategyTest {
             final var STRATEGY_NAME = "Random";
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-            var pileAfterMove = testee.doMove(pileBeforeMove);
+            var move = testee.makeMove(pileBeforeMove);
 
-            int stickDifference = pileBeforeMove.stickCount() - pileAfterMove.stickCount();
-
-            assertThat(pileAfterMove).isNotEqualTo(pileBeforeMove);
-            assertThat(stickDifference).isBetween(1,3);
+            assertThat(move).isNotNull();
+            assertThat(move.sticksToTake()).isBetween(1,3);
         }
 
         @Test

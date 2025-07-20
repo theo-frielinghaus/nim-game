@@ -6,14 +6,16 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static com.theof.nimgame.application.GamelogTemplate.COM_PLAYER_TURN;
 import static com.theof.nimgame.application.GamelogTemplate.GAME_STARTED;
+import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_TURN;
 import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isOneOf;
 import static org.hamcrest.Matchers.oneOf;
 
 @QuarkusTest
@@ -27,7 +29,7 @@ class GameResourceTest {
 
     @Test
     void new_game_gets_started() {
-        NewGameSettings settings = new NewGameSettings("random");
+        SettingsDTO settings = new SettingsDTO("random");
         given()
             .contentType(ContentType.JSON)
             .body(settings)
@@ -41,7 +43,7 @@ class GameResourceTest {
 
     @Test
     void new_game_with_invalid_settings_doesnt_get_created() {
-        NewGameSettings settings = new NewGameSettings("llm");
+        SettingsDTO settings = new SettingsDTO("llm");
         given()
             .contentType(ContentType.JSON)
             .body(settings)
@@ -55,10 +57,33 @@ class GameResourceTest {
 
     @Test
     void human_player_plays_valid_move() {
+        var validMove = new MoveDTO(3);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(validMove)
+            .pathParam("gameID", -1)
+            .when()
+            .put("/{gameID}")
+            .then()
+            .statusCode(200)
+            .body("stickCount", is(oneOf(9, 8, 7)))
+            .body("gamelog", hasItem(HUMAN_PLAYER_TURN.format(validMove.sticksToTake())));
     }
 
     @Test
     void human_player_plays_invalid_move() {
+        var invalidMove = new MoveDTO(10);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(invalidMove)
+            .pathParam("gameID", -2)
+            .when()
+            .put("/{gameID}")
+            .then()
+            .statusCode(400)
+            .body(containsString("A move must take 1, 2 or 3 sticks from the pile!"));
     }
 
     @Test

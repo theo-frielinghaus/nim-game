@@ -13,7 +13,7 @@ class PileTest {
     void no_pile_with_negative_amount_of_sticks() {
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
             var pile = new Pile(-1);
-        }).withMessage("A stickCount cannot have a negative amount of sticks!");
+        }).withMessage("A pile cannot have a negative amount of sticks!");
     }
 
     @Test
