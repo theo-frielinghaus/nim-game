@@ -4,50 +4,35 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.PostLoad;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Transient;
-
 
 @Entity
 public class Game extends PanacheEntity {
 
     @Nonnull
-    private String strategyName;
-
-    @Transient
-    private ComPlayerStrategy strategy;
+    private String comPlayerStrategyName;
 
     @Embedded
     private Pile pile;
 
-    private boolean isComPlayerFirst;
-
     public Game() {
     }
 
-    public Game(@Nonnull String strategyName, Pile pile,  boolean isComPlayerFirst) {
-        this.strategyName = strategyName;
+    public Game(@Nonnull String comPlayerStrategyName, Pile pile) {
+        this.comPlayerStrategyName = comPlayerStrategyName;
         this.pile = pile;
-        this.isComPlayerFirst = isComPlayerFirst;
     }
 
-    public Pile start() {
-        if(!isComPlayerFirst) return pile;
-        if(strategy == null) createStrategy();
+    public ComPlayerStrategy createStrategy() {
+        return ComPlayerStrategy.fromType(this.comPlayerStrategyName);
+    }
 
-        pile = strategy.doMove(pile);
+    public Pile getPile() {
+        //TODO: check if game is over
         return pile;
     }
 
-    public boolean isComPlayerFirst() {
-        return isComPlayerFirst;
+    public Pile applyMove(Move move) {
+        pile = new Pile(pile.stickCount() - move.sticksToTake());
+        return pile;
     }
-
-    @PrePersist
-    @PostLoad
-    private void createStrategy() {
-        this.strategy = ComPlayerStrategy.fromType(this.strategyName);
-    }
-
 }

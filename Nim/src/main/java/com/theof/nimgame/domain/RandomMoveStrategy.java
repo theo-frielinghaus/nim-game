@@ -10,8 +10,8 @@ public class RandomMoveStrategy implements ComPlayerStrategy {
     }
 
     @Override
-    public Pile doMove(Pile pile) {
+    public Move makeMove(Pile pile) {
         int numSticksToTake = random.nextInt(1, 4);
-        return new Pile(pile.stickCount() - numSticksToTake);
+        return new Move(numSticksToTake);
     }
 }
