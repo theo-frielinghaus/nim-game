@@ -21,7 +21,7 @@ public class GameResource {
         summary = "Create and start a new game",
         description = """
     Creates a game using the provided settings. \n
-    Current only functioning setting is {"comStrategy": "random"}.\n
+    Current available computer player strategys are {"comStrategy": "random" || "optimal"}.\n
     Returns the game state at the start of the game, with the gameID that is needed to make moves.\n
     If computer starts the game, they already start with their own move, which will be reflected in game state.
     
