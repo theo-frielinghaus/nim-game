@@ -5,17 +5,15 @@ public class OptimalMoveStrategy implements ComPlayerStrategy {
     @Override
     public Move makeMove(Pile pile) {
         var sticks = pile.stickCount();
+        var sticksToTake = 0;
 
-        if (sticks == 1)
-            return new Move(PlayerType.COM, 1);
-        if (sticks > 1 && sticks <= 4)
-            return new Move(PlayerType.COM, sticks - 1);
+        switch (sticks) {
+            case 2,6,10 -> sticksToTake = 1;
+            case 3,7,11 -> sticksToTake = 2;
+            case 4,8,12 -> sticksToTake = 3;
+            case 5,9,13 -> sticksToTake = 1; // Losing position, taking one to stall
+        }
 
-        var sticksToTake = sticks % 4;
-
-        if (sticksToTake > 0)
-            return new Move(PlayerType.COM, sticksToTake);
-
-        return new Move(PlayerType.COM, 1);
+        return new Move(PlayerType.COM, sticksToTake);
     }
 }
