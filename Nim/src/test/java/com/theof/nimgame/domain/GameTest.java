@@ -34,7 +34,6 @@ class GameTest {
             var additionalMove = new Move(PlayerType.COM, 1);
             game.applyMove(losingMove);
 
-
             assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
 
                 Pile pileAfterMove = game.applyMove(additionalMove);

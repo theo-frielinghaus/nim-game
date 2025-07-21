@@ -3,7 +3,7 @@ package com.theof.nimgame.domain;
 
 public interface ComPlayerStrategy {
 
-    public Move makeMove(Pile pile);
+    Move makeMove(Pile pile);
 
     static ComPlayerStrategy fromType(String strategyName) {
         strategyName = strategyName.toLowerCase();
