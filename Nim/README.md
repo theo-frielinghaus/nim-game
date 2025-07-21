@@ -1,5 +1,32 @@
 # nimgame
 
+## Wichtige Info
+
+Maven: 3.9.10. , niedrigere Versionen könnten zu Problemen führen.
+JDK: 21.
+
+Packaging and Tests: 
+```shell script
+./mvnw install
+```
+
+Quarkus bietet eine integrierte H2 Datenbank im Dev-Modus an, die keinerlei SetUp benötigt. Deshalb bitte 
+die Anwendung, im dev modus starten:
+
+```shell script
+./mvnw quarkus:dev
+```
+
+Wenn die Anwendung läuft kann hier eine Swagger UI erreicht werden, um Requests durchzuführen:
+
+<http://localhost:8080/q/swagger-ui/>
+
+Viel Spaß beim Ausprobieren! :) 
+
+
+Es folgt die Standard README von Quarkus:
+
+
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
