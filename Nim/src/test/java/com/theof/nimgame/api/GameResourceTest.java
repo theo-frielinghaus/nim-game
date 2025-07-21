@@ -6,15 +6,13 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static com.theof.nimgame.application.GamelogTemplate.COM_PLAYER_TURN;
 import static com.theof.nimgame.application.GamelogTemplate.GAME_STARTED;
 import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_TURN;
+import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_WON;
 import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
 
@@ -88,6 +86,33 @@ class GameResourceTest {
 
     @Test
     void after_last_possible_turn_game_is_ended() {
+        var validMove = new MoveDTO(1);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(validMove)
+            .pathParam("gameID", -7)
+            .when()
+            .put("/{gameID}")
+            .then()
+            .statusCode(200)
+            .body("stickCount", is(0))
+            .body("gamelog", hasItem(HUMAN_PLAYER_WON.format()));
+    }
+
+    @Test
+    void after_game_is_ended_no_turns_possible() {
+        var validMove = new MoveDTO(1);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(validMove)
+            .pathParam("gameID", -8)
+            .when()
+            .put("/{gameID}")
+            .then()
+            .statusCode(409)
+            .body(containsString("Game is already over! No further moves possible."));
     }
 
 }

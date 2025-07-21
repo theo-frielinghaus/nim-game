@@ -4,11 +4,8 @@ import com.theof.nimgame.api.GameStateDTO;
 import com.theof.nimgame.api.MoveDTO;
 import com.theof.nimgame.api.SettingsDTO;
 import com.theof.nimgame.domain.Game;
-import com.theof.nimgame.domain.RandomMoveStrategy;
+import com.theof.nimgame.domain.PlayerType;
 import com.theof.nimgame.infrastructure.GameRepository;
-import io.quarkus.test.InjectMock;
-import io.quarkus.test.TestTransaction;
-import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -16,16 +13,16 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.List;
-import java.util.Random;
 
 import static com.theof.nimgame.application.GamelogTemplate.COM_PLAYER_STARTS;
 import static com.theof.nimgame.application.GamelogTemplate.COM_PLAYER_TURN;
+import static com.theof.nimgame.application.GamelogTemplate.CON_PLAYER_WON;
 import static com.theof.nimgame.application.GamelogTemplate.GAME_STARTED;
 import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_STARTS;
 import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_TURN;
+import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_WON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -38,7 +35,6 @@ class GameServiceTest {
 
     @Inject
     GameRepository gameRepository;
-
 
     final int NUM_STARTING_STICKS = 13;
 
@@ -179,17 +175,67 @@ class GameServiceTest {
         }
     }
 
-/*        @Test
-        void human_player_takes_negative_sticks() {
+    @Nested
+    class GameEndingMoves {
+
+        @Test
+        void human_player_loses() {
+            final Long gameId = -9L;
+            var moveToMake = new MoveDTO(1);
+            GameStateDTO gameState = testee.makeMove(gameId, moveToMake);
+            Game gameAfterMove = gameRepository.findById(gameId);
+
+            assertThat(gameState).isNotNull();
+            assertThat(gameState.gameId()).isEqualTo(gameId);
+            assertThat(gameState.stickCount()).isEqualTo(0);
+            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(moveToMake.sticksToTake()),
+                CON_PLAYER_WON.format());
+
+            assertThat(gameAfterMove)
+                .extracting("pile")
+                .extracting("stickCount")
+                .isEqualTo(0);
+            assertThat(gameAfterMove.getWinner()).isEqualTo(PlayerType.COM);
         }
 
         @Test
-        void human_player_takes_zero_sticks() {
+        void human_player_wins() {
+            final Long gameId = -10L;
+            var moveToMake = new MoveDTO(1);
+            GameStateDTO gameState = testee.makeMove(gameId, moveToMake);
+            Game gameAfterMove = gameRepository.findById(gameId);
+
+            assertThat(gameState).isNotNull();
+            assertThat(gameState.gameId()).isEqualTo(gameId);
+            assertThat(gameState.stickCount()).isEqualTo(0);
+            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(moveToMake.sticksToTake()), HUMAN_PLAYER_WON.format());
+
+            assertThat(gameAfterMove)
+                .extracting("pile")
+                .extracting("stickCount")
+                .isEqualTo(0);
+            assertThat(gameAfterMove.getWinner()).isEqualTo(PlayerType.HUMAN);
         }
 
         @Test
-        void human_player_takes_more_than_three_sticks() {
-        }*/
+        void no_moves_after_game_ended() {
+            final Long gameId = -11L;
+            var moveToMake = new MoveDTO(2);
 
+            assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+                GameStateDTO gameState = testee.makeMove(gameId, moveToMake);
 
+                assertThat(gameState).isNull();
+                Game gameAfterMove = gameRepository.findById(gameId);
+
+                assertThat(gameAfterMove)
+                    .extracting("pile")
+                    .extracting("stickCount")
+                    .isEqualTo(0);
+                assertThat(gameAfterMove.getWinner()).isEqualTo("human");
+            });
+
+        }
+    }
 }
+
