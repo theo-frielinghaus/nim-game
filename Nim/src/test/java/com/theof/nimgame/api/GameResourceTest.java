@@ -31,9 +31,9 @@ class GameResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body(settings)
-            .when()
+        .when()
             .post()
-            .then()
+        .then()
             .statusCode(200)
             .body("stickCount", is(oneOf(13, 12, 11, 10)))
             .body("gamelog", hasItem(GAME_STARTED.format()));
@@ -45,9 +45,9 @@ class GameResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body(settings)
-            .when()
+        .when()
             .post()
-            .then()
+        .then()
             .statusCode(400)
             .body(containsString("Unknown strategy: llm"));
 
@@ -61,9 +61,9 @@ class GameResourceTest {
             .contentType(ContentType.JSON)
             .body(validMove)
             .pathParam("gameID", -1)
-            .when()
+        .when()
             .put("/{gameID}")
-            .then()
+        .then()
             .statusCode(200)
             .body("stickCount", is(oneOf(9, 8, 7)))
             .body("gamelog", hasItem(HUMAN_PLAYER_TURN.format(validMove.sticksToTake())));
@@ -77,9 +77,9 @@ class GameResourceTest {
             .contentType(ContentType.JSON)
             .body(invalidMove)
             .pathParam("gameID", -2)
-            .when()
+        .when()
             .put("/{gameID}")
-            .then()
+        .then()
             .statusCode(400)
             .body(containsString("A move must take 1, 2 or 3 sticks from the pile!"));
     }
@@ -92,9 +92,9 @@ class GameResourceTest {
             .contentType(ContentType.JSON)
             .body(validMove)
             .pathParam("gameID", -7)
-            .when()
+        .when()
             .put("/{gameID}")
-            .then()
+        .then()
             .statusCode(200)
             .body("stickCount", is(0))
             .body("gamelog", hasItem(HUMAN_PLAYER_WON.format()));
@@ -108,9 +108,9 @@ class GameResourceTest {
             .contentType(ContentType.JSON)
             .body(validMove)
             .pathParam("gameID", -8)
-            .when()
+        .when()
             .put("/{gameID}")
-            .then()
+        .then()
             .statusCode(409)
             .body(containsString("Game is already over! No further moves possible."));
     }

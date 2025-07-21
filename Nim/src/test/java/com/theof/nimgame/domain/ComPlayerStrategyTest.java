@@ -22,11 +22,10 @@ class ComPlayerStrategyTest {
 
     @Nested
     class RandomMoveStrategyTest {
+        final String STRATEGY_NAME = "Random";
 
         @Test
         void random_move_strategy_creation() {
-            final var STRATEGY_NAME = "Random";
-
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
             assertThat(testee).isExactlyInstanceOf(RandomMoveStrategy.class);
         }
@@ -34,7 +33,6 @@ class ComPlayerStrategyTest {
         @RepeatedTest(10)
         void valid_random_move() {
             var pileBeforeMove = new Pile(10);
-            final var STRATEGY_NAME = "Random";
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
             var move = testee.makeMove(pileBeforeMove);
@@ -44,13 +42,26 @@ class ComPlayerStrategyTest {
         }
 
         @Test
-        void valid_random_move_with_3_sticks_on_pile() {};
+        void valid_random_move_with_2_sticks_on_pile() {
+            var pileBeforeMove = new Pile(2);
+            ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
+
+            var move = testee.makeMove(pileBeforeMove);
+
+            assertThat(move).isNotNull();
+            assertThat(move.sticksToTake()).isBetween(1,2);
+        };
 
         @Test
-        void valid_random_move_with_2_sticks_on_pile() {};
+        void last_possible_move_with_1_stick_on_pile() {
+            var pileBeforeMove = new Pile(1);
+            ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-        @Test
-        void last_possible_move_with_1_stick_on_pile() {};
+            var move = testee.makeMove(pileBeforeMove);
+
+            assertThat(move).isNotNull();
+            assertThat(move.sticksToTake()).isEqualTo(1);
+        };
     }
 
     @Nested
