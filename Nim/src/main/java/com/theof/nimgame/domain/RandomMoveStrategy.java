@@ -11,7 +11,8 @@ public class RandomMoveStrategy implements ComPlayerStrategy {
 
     @Override
     public Move makeMove(Pile pile) {
-        int numSticksToTake = random.nextInt(1, 4);
-        return new Move(numSticksToTake);
+       var maxSticksToTake = Math.min(pile.stickCount(), 3);
+        int numSticksToTake = random.nextInt(1, maxSticksToTake + 1);
+        return new Move(PlayerType.COM, numSticksToTake);
     }
 }

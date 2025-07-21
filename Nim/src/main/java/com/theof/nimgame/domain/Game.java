@@ -4,6 +4,11 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+
+import static com.theof.nimgame.domain.PlayerType.COM;
+import static com.theof.nimgame.domain.PlayerType.HUMAN;
 
 @Entity
 public class Game extends PanacheEntity {
@@ -14,12 +19,16 @@ public class Game extends PanacheEntity {
     @Embedded
     private Pile pile;
 
+    @Enumerated(EnumType.STRING)
+    private PlayerType winner;
+
     public Game() {
     }
 
-    public Game(@Nonnull String comPlayerStrategyName, Pile pile) {
+    public Game(@Nonnull String comPlayerStrategyName, @Nonnull Pile pile) {
         this.comPlayerStrategyName = comPlayerStrategyName;
         this.pile = pile;
+        winner = null;
     }
 
     public ComPlayerStrategy createStrategy() {
@@ -27,12 +36,24 @@ public class Game extends PanacheEntity {
     }
 
     public Pile getPile() {
-        //TODO: check if game is over
         return pile;
     }
 
     public Pile applyMove(Move move) {
+        if(winner != null) throw new IllegalStateException("Game is already over! No further moves possible.");
         pile = new Pile(pile.stickCount() - move.sticksToTake());
+        if (pile.stickCount() == 0) determineWinner(move);
         return pile;
     }
+
+    public PlayerType getWinner() {
+        return winner;
+    }
+    private void determineWinner(Move move) {
+        switch (move.player()) {
+            case COM -> winner = HUMAN;
+            case HUMAN -> winner = COM;
+        }
+    }
+
 }

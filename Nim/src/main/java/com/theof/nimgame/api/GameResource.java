@@ -34,4 +34,12 @@ public class GameResource {
             .type(MediaType.TEXT_PLAIN_TYPE)
             .build();
     }
+
+    @ServerExceptionMapper({IllegalStateException.class})
+    public Response handleIllegalArgument(IllegalStateException ex) {
+        return Response.status(Response.Status.CONFLICT)
+            .entity("Invalid arguments: " + ex.getMessage())
+            .type(MediaType.TEXT_PLAIN_TYPE)
+            .build();
+    }
 }
