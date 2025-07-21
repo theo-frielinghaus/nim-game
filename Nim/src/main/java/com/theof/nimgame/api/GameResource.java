@@ -29,7 +29,7 @@ public class GameResource {
     )
     public GameStateDTO startGame(SettingsDTO settings) {
         Long gameId = gameService.createGame(settings);
-        return gameService.startGame(gameId, true);
+        return gameService.startGame(gameId, settings.hasHumanPlayerFirstTurn());
     }
 
     @PUT
