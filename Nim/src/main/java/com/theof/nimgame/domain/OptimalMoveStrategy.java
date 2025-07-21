@@ -8,7 +8,7 @@ public class OptimalMoveStrategy implements ComPlayerStrategy {
 
         if (sticks == 1)
             return new Move(PlayerType.COM, 1);
-        if (sticks > 1 && sticks <= 3)
+        if (sticks > 1 && sticks <= 4)
             return new Move(PlayerType.COM, sticks - 1);
 
         var sticksToTake = sticks % 4;
