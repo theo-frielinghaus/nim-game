@@ -12,6 +12,8 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
+import static com.theof.nimgame.api.GameStateMapper.gameStateDTOFrom;
+
 @Path("/games")
 public class GameResource {
     @Inject
@@ -31,8 +33,7 @@ public class GameResource {
     public GameStateDTO startGame(SettingsDTO settings) {
         Long gameId = gameService.createGame(settings.comStrategy());
         GameState gameState = gameService.startGame(gameId, settings.hasHumanPlayerFirstTurn());
-        return new GameStateDTO(gameState.gameId(), gameState.stickCount(), gameState.gamelog(),
-            "");
+        return gameStateDTOFrom(gameState);
     }
 
     @PUT
@@ -50,8 +51,7 @@ public class GameResource {
     )
     public GameStateDTO makeMove(@PathParam("gameID") Long gameID, MoveDTO move) {
         GameState gameState = gameService.makeMove(gameID, move.sticksToTake());
-        String winner = gameState.winner() != null ? gameState.winner().displayName() : "";
-        return new GameStateDTO(gameState.gameId(), gameState.stickCount(), gameState.gamelog(), winner);
+        return gameStateDTOFrom(gameState);
     }
 
     @ServerExceptionMapper({IllegalArgumentException.class})
