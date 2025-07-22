@@ -6,6 +6,7 @@ import com.theof.nimgame.infrastructure.GameRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -34,11 +35,47 @@ class GameServiceTest {
     GameRepository gameRepository;
 
     final int NUM_STARTING_STICKS = 13;
+    @Inject
+    GameService gameService;
 
     @BeforeAll
     static void setUp() {
         //TODO: check if necessary
         Assertions.setAllowExtractingPrivateFields(true);
+    }
+
+    @Nested
+    class GameRetrieval {
+
+        @Test
+        void current_game_state_gets_retrieved() {
+            // given
+            final var GAME_ID = -6L;
+
+            // when
+            var gameState = testee.getGameState(GAME_ID);
+
+            // then
+            assertThat(gameState).isNotNull();
+            assertThat(gameState.gameId()).isEqualTo(GAME_ID);
+            assertThat(gameState.gamelog()).isEmpty();
+            assertThat(gameState.winner()).isNull();
+            assertThat(gameState.stickCount()).isEqualTo(13);
+        }
+
+        @Test
+        void game_cannot_be_found() {
+            // given
+            final var GAME_ID = -999L;
+
+            //when
+            assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+                var gameState = testee.getGameState(GAME_ID);
+
+                // then
+                assertThat(gameState).isNull();
+            }).withMessage(String.format("Game with id %d doesn't exist.", GAME_ID));
+        }
     }
 
     @Nested
@@ -234,7 +271,8 @@ class GameServiceTest {
             assertThat(gameState).isNotNull();
             assertThat(gameState.gameId()).isEqualTo(GAME_ID);
             assertThat(gameState.stickCount()).isEqualTo(0);
-            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(STICKS_TO_TAKE), HUMAN_PLAYER_WON.format());
+            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(STICKS_TO_TAKE),
+                HUMAN_PLAYER_WON.format());
 
             assertThat(gameAfterMove)
                 .extracting("pile")

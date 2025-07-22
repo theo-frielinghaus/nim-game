@@ -6,12 +6,15 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static com.theof.nimgame.application.GamelogTemplate.GAME_STARTED;
 import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_TURN;
 import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_WON;
 import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyCollectionOf;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -53,6 +56,32 @@ class GameResourceTest {
             .statusCode(400)
             .body(containsString("Unknown strategy: llm"));
 
+    }
+
+    @Test
+    void current_game_state_for_specific_game() {
+
+        given()
+            .pathParam("gameID", -1)
+        .when()
+            .get("/{gameID}")
+        .then()
+            .statusCode(200)
+            .body("stickCount", is(13))
+            .body("gamelog", is(emptyCollectionOf(List.class)))
+            .body("winner", is(emptyString()));
+    }
+
+    @Test
+    void no_game_state_for_non_existing_game() {
+
+        given()
+            .pathParam("gameID", -999L)
+        .when()
+            .get("/{gameID}")
+        .then()
+            .statusCode(404)
+            .body(containsString("Game with id -999 doesn't exist." ));
     }
 
     @Test
