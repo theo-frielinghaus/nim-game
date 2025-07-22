@@ -1,9 +1,9 @@
 package com.theof.nimgame.domain;
 
 
- public interface ComPlayerStrategy {
+ interface ComPlayerStrategy {
 
-    Move makeMove(Pile pile);
+    MoveImpl computeMove(Pile pile);
 
     static ComPlayerStrategy fromType(String strategyName) {
         strategyName = strategyName.toLowerCase();

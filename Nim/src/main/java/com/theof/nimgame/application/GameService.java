@@ -1,9 +1,6 @@
 package com.theof.nimgame.application;
 
 import com.theof.nimgame.domain.Game;
-import com.theof.nimgame.domain.Move;
-import com.theof.nimgame.domain.Pile;
-import com.theof.nimgame.domain.PlayerType;
 import com.theof.nimgame.infrastructure.GameRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,9 +27,7 @@ public class GameService {
 
     @Transactional
     public Long createGame(String comStrategy) {
-        var pile = new Pile(NUM_STARTING_STICKS);
-        var game = new Game(comStrategy, pile);
-        game.createStrategy();
+        var game = new Game(comStrategy, NUM_STARTING_STICKS);
         gameRepository.persist(game);
         return game.id;
     }
@@ -41,61 +36,64 @@ public class GameService {
     public GameState startGame(Long gameId, boolean hasHumanPlayerFirstTurn) {
         var gameLog = new ArrayList<String>();
         var game = gameRepository.findById(gameId);
-        var startingPile = game.getPile();
-
+        var sticksOnPileCount = game.getStickCountOnPile();
         gameLog.add(GAME_STARTED.format());
 
         if (hasHumanPlayerFirstTurn) {
             gameLog.add(HUMAN_PLAYER_STARTS.format());
-            return new GameState(gameId, startingPile.stickCount(), List.copyOf(gameLog), null);
+            return new GameState(gameId, sticksOnPileCount, List.copyOf(gameLog), null);
         }
-
+        
         gameLog.add(COM_PLAYER_STARTS.format());
-        var gameState = new GameState(gameId, startingPile.stickCount(), List.copyOf(gameLog), null );
-        return computerMakesMove(gameState,  game);
+        var gameStateAtStart = new GameState(gameId, sticksOnPileCount, List.copyOf(gameLog), null);
+
+        return makeComMove(gameStateAtStart, game);
     }
 
     @Transactional
     public GameState makeMove(Long gameId, int sticksToTake) {
         var game = gameRepository.findById(gameId);
 
-        GameState gameStateAfterHumanMove = humanMakesMove(sticksToTake, game);
+        GameState gameStateAfterHumanMove = makeHumanMove(sticksToTake, game);
 
         if (gameStateAfterHumanMove.winner() != null) {
-            return getGameOverGameState(gameStateAfterHumanMove);
+            return gameOver(gameStateAfterHumanMove);
         }
 
-        GameState gameStateAfterComMove = computerMakesMove(gameStateAfterHumanMove, game);
+        GameState gameStateAfterComMove = makeComMove(gameStateAfterHumanMove, game);
 
         if (gameStateAfterComMove.winner() != null) {
-            return getGameOverGameState(gameStateAfterComMove);
+            return gameOver(gameStateAfterComMove);
         }
 
         return gameStateAfterComMove;
     }
 
-    private GameState humanMakesMove(int sticksToTake, Game game) {
+    private GameState makeHumanMove(int sticksToTake, Game game) {
         var gamelog = new ArrayList<String>();
-        var move = new Move(PlayerType.HUMAN, sticksToTake);
 
-        Pile pileAfterHumanMove = game.applyMove(move);
+        var moveToMake = game.createHumanMove(sticksToTake);
+        var stickCountAfterHumanMove = game.makeMove(moveToMake);
         gamelog.add(HUMAN_PLAYER_TURN.format(sticksToTake));
 
-        return new GameState(game.id, pileAfterHumanMove.stickCount(), List.copyOf(gamelog), game.getWinner());
+        return new GameState(game.id, stickCountAfterHumanMove, List.copyOf(gamelog), game.getWinner());
     }
 
-    private GameState computerMakesMove(GameState gameState, Game game) {
+    private GameState makeComMove(GameState gameState, Game game) {
         var gamelog = new ArrayList<>(gameState.gamelog());
-        var comMove = game.createStrategy().makeMove(game.getPile());
 
-        var pileAfterComMove = game.applyMove(comMove);
-        gamelog.add(COM_PLAYER_TURN.format(comMove.sticksToTake()));
+        var moveToMake = game.createComMove();
+        var stickCountAfterComMove = game.makeMove(moveToMake);
 
-        return new GameState(gameState.gameId(), pileAfterComMove.stickCount(), List.copyOf(gamelog),
+        var sticksTaken = gameState.stickCount() - stickCountAfterComMove;
+
+        gamelog.add(COM_PLAYER_TURN.format(sticksTaken));
+
+        return new GameState(gameState.gameId(), stickCountAfterComMove, List.copyOf(gamelog),
             game.getWinner());
     }
 
-    private GameState getGameOverGameState(GameState gameState) {
+    private GameState gameOver(GameState gameState) {
         var gamelog = new ArrayList<>(gameState.gamelog());
         switch (gameState.winner()) {
             case HUMAN -> gamelog.add(HUMAN_PLAYER_WON.format());

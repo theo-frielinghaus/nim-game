@@ -25,32 +25,41 @@ public class Game extends PanacheEntity {
     public Game() {
     }
 
-    public Game(@Nonnull String comPlayerStrategyName, @Nonnull Pile pile) {
+    public Game(@Nonnull String comPlayerStrategyName, int startingSticksOnPile) {
         this.comPlayerStrategyName = comPlayerStrategyName;
-        this.pile = pile;
+        this.pile = new Pile(startingSticksOnPile);
         winner = null;
+        ComPlayerStrategy.fromType(this.comPlayerStrategyName); //to validate strategyName before persist
     }
 
-    public ComPlayerStrategy createStrategy() {
-        return ComPlayerStrategy.fromType(this.comPlayerStrategyName);
+    public int getStickCountOnPile() {
+        return pile.stickCount();
     }
 
-    public Pile getPile() {
-        return pile;
+    public Move createHumanMove(int sticksToTake) {
+        return new MoveImpl(HUMAN, sticksToTake);
     }
 
-    public Pile applyMove(Move move) {
-        if(winner != null) throw new IllegalStateException("Game is already over! No further moves possible.");
-        pile = new Pile(pile.stickCount() - move.sticksToTake());
-        if (pile.stickCount() == 0) determineWinner(move);
-        return pile;
+    public Move createComMove() {
+        return ComPlayerStrategy.fromType(comPlayerStrategyName).computeMove(pile);
+    }
+
+    public int makeMove(Move move) {
+        if (winner != null)
+            throw new IllegalStateException("Game is already over! No further moves possible.");
+
+        pile = move.execute(pile);
+        if (pile.stickCount() == 0)
+            determineWinner(((MoveImpl) move).player());
+        return pile.stickCount();
     }
 
     public PlayerType getWinner() {
         return winner;
     }
-    private void determineWinner(Move move) {
-        switch (move.player()) {
+
+    private void determineWinner(PlayerType player) {
+        switch (player) {
             case COM -> winner = HUMAN;
             case HUMAN -> winner = COM;
         }

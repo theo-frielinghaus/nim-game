@@ -2,7 +2,7 @@ package com.theof.nimgame.domain;
 
 import java.util.Random;
 
-public class RandomMoveStrategy implements ComPlayerStrategy {
+class RandomMoveStrategy implements ComPlayerStrategy {
     private final Random random;
 
     public RandomMoveStrategy() {
@@ -10,9 +10,9 @@ public class RandomMoveStrategy implements ComPlayerStrategy {
     }
 
     @Override
-    public Move makeMove(Pile pile) {
+    public MoveImpl computeMove(Pile pile) {
        var maxSticksToTake = Math.min(pile.stickCount(), 3);
         int numSticksToTake = random.nextInt(1, maxSticksToTake + 1);
-        return new Move(PlayerType.COM, numSticksToTake);
+        return new MoveImpl(PlayerType.COM, numSticksToTake);
     }
 }

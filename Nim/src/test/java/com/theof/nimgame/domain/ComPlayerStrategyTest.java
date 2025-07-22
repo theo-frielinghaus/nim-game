@@ -37,7 +37,7 @@ class ComPlayerStrategyTest {
             var pileBeforeMove = new Pile(10);
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-            var move = testee.makeMove(pileBeforeMove);
+            var move = testee.computeMove(pileBeforeMove);
 
             assertThat(move).isNotNull();
             assertThat(move.sticksToTake()).isBetween(1,3);
@@ -48,7 +48,7 @@ class ComPlayerStrategyTest {
             var pileBeforeMove = new Pile(2);
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-            var move = testee.makeMove(pileBeforeMove);
+            var move = testee.computeMove(pileBeforeMove);
 
             assertThat(move).isNotNull();
             assertThat(move.sticksToTake()).isBetween(1,2);
@@ -59,7 +59,7 @@ class ComPlayerStrategyTest {
             var pileBeforeMove = new Pile(1);
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-            var move = testee.makeMove(pileBeforeMove);
+            var move = testee.computeMove(pileBeforeMove);
 
             assertThat(move).isNotNull();
             assertThat(move.sticksToTake()).isEqualTo(1);
@@ -84,7 +84,7 @@ class ComPlayerStrategyTest {
             var pileBeforeMove = new Pile(stickCount);
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-            var move = testee.makeMove(pileBeforeMove);
+            var move = testee.computeMove(pileBeforeMove);
 
             assertThat(move).isNotNull();
             assertThat(move.sticksToTake() + 9).isEqualTo(stickCount);
@@ -96,7 +96,7 @@ class ComPlayerStrategyTest {
             var pileBeforeMove = new Pile(stickCount);
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-            var move = testee.makeMove(pileBeforeMove);
+            var move = testee.computeMove(pileBeforeMove);
 
             assertThat(move).isNotNull();
             assertThat(move.sticksToTake() + 5).isEqualTo(stickCount);
@@ -108,7 +108,7 @@ class ComPlayerStrategyTest {
             var pileBeforeMove = new Pile(stickCount);
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-            var move = testee.makeMove(pileBeforeMove);
+            var move = testee.computeMove(pileBeforeMove);
 
             assertThat(move).isNotNull();
             assertThat(move.sticksToTake() + 1).isEqualTo(stickCount);
@@ -120,7 +120,7 @@ class ComPlayerStrategyTest {
             var pileBeforeMove = new Pile(stickCount);
             ComPlayerStrategy testee = ComPlayerStrategy.fromType(STRATEGY_NAME);
 
-            var move = testee.makeMove(pileBeforeMove);
+            var move = testee.computeMove(pileBeforeMove);
 
             assertThat(move).isNotNull();
             assertThat(move.sticksToTake()).isEqualTo(1);

@@ -1,9 +1,9 @@
 package com.theof.nimgame.domain;
 
-public class OptimalMoveStrategy implements ComPlayerStrategy {
+class OptimalMoveStrategy implements ComPlayerStrategy {
 
     @Override
-    public Move makeMove(Pile pile) {
+    public MoveImpl computeMove(Pile pile) {
         var sticks = pile.stickCount();
         var sticksToTake = 0;
 
@@ -14,6 +14,6 @@ public class OptimalMoveStrategy implements ComPlayerStrategy {
             case 5,9,13 -> sticksToTake = 1; // Losing position, taking one to stall
         }
 
-        return new Move(PlayerType.COM, sticksToTake);
+        return new MoveImpl(PlayerType.COM, sticksToTake);
     }
 }
