@@ -3,6 +3,8 @@ package com.theof.nimgame.api;
 import com.theof.nimgame.application.GameService;
 import com.theof.nimgame.application.GameState;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -54,6 +56,19 @@ public class GameResource {
         return gameStateDTOFrom(gameState);
     }
 
+    @GET
+    @Path("{gameID}")
+    @Operation(
+        summary = "Retrieve game state",
+        description = """
+            Retrieves the current state of game;
+            """
+    )
+    public GameStateDTO getCurrentGameState(@PathParam("gameID") Long gameID) {
+        GameState gameState = gameService.getGameState(gameID);
+        return gameStateDTOFrom(gameState);
+    }
+
     @ServerExceptionMapper({IllegalArgumentException.class})
     public Response handleIllegalArgument(IllegalArgumentException ex) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -65,7 +80,15 @@ public class GameResource {
     @ServerExceptionMapper({IllegalStateException.class})
     public Response handleIllegalArgument(IllegalStateException ex) {
         return Response.status(Response.Status.CONFLICT)
-            .entity("Invalid arguments: " + ex.getMessage())
+            .entity("Illegal state: " + ex.getMessage())
+            .type(MediaType.TEXT_PLAIN_TYPE)
+            .build();
+    }
+
+    @ServerExceptionMapper({NotFoundException.class})
+    public Response handleResourceNotFound(NotFoundException ex) {
+        return Response.status(Response.Status.NOT_FOUND)
+            .entity(ex.getMessage())
             .type(MediaType.TEXT_PLAIN_TYPE)
             .build();
     }

@@ -5,6 +5,7 @@ import com.theof.nimgame.infrastructure.GameRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,14 +37,14 @@ public class GameService {
     public GameState startGame(Long gameId, boolean hasHumanPlayerFirstTurn) {
         var gameLog = new ArrayList<String>();
         var game = gameRepository.findById(gameId);
-        var sticksOnPileCount = game.getStickCountOnPile();
+        var sticksOnPileCount = game.getStickCount();
         gameLog.add(GAME_STARTED.format());
 
         if (hasHumanPlayerFirstTurn) {
             gameLog.add(HUMAN_PLAYER_STARTS.format());
             return new GameState(gameId, sticksOnPileCount, List.copyOf(gameLog), null);
         }
-        
+
         gameLog.add(COM_PLAYER_STARTS.format());
         var gameStateAtStart = new GameState(gameId, sticksOnPileCount, List.copyOf(gameLog), null);
 
@@ -102,4 +103,9 @@ public class GameService {
         return new GameState(gameState.gameId(), gameState.stickCount(), List.copyOf(gamelog), gameState.winner());
     }
 
+    public GameState getGameState(long gameId) {
+        var game = gameRepository.findById(gameId);
+        if (game == null) throw new NotFoundException(String.format("Game with id %d doesn't exist.", gameId));
+        return new GameState(gameId, game.getStickCount(), List.of(), game.getWinner());
+    }
 }
