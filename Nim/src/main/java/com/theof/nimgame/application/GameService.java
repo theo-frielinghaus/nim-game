@@ -1,8 +1,5 @@
 package com.theof.nimgame.application;
 
-import com.theof.nimgame.api.GameStateDTO;
-import com.theof.nimgame.api.MoveDTO;
-import com.theof.nimgame.api.SettingsDTO;
 import com.theof.nimgame.domain.Game;
 import com.theof.nimgame.domain.Move;
 import com.theof.nimgame.domain.Pile;
@@ -32,16 +29,16 @@ public class GameService {
     private static final int NUM_STARTING_STICKS = 13;
 
     @Transactional
-    public Long createGame(SettingsDTO settings) {
+    public Long createGame(String comStrategy) {
         var pile = new Pile(NUM_STARTING_STICKS);
-        var game = new Game(settings.comStrategy(), pile);
+        var game = new Game(comStrategy, pile);
         game.createStrategy();
         gameRepository.persist(game);
         return game.id;
     }
 
     @Transactional
-    public GameStateDTO startGame(Long gameId, boolean hasHumanPlayerFirstTurn) {
+    public GameState startGame(Long gameId, boolean hasHumanPlayerFirstTurn) {
         var gameLog = new ArrayList<String>();
         var game = gameRepository.findById(gameId);
         var startingPile = game.getPile();
@@ -50,25 +47,25 @@ public class GameService {
 
         if (hasHumanPlayerFirstTurn) {
             gameLog.add(HUMAN_PLAYER_STARTS.format());
-            return new GameStateDTO(gameId, startingPile.stickCount(), List.copyOf(gameLog), null);
+            return new GameState(gameId, startingPile.stickCount(), List.copyOf(gameLog), null);
         }
 
         gameLog.add(COM_PLAYER_STARTS.format());
-        var gameState = new GameStateDTO(gameId, startingPile.stickCount(), List.copyOf(gameLog), null );
+        var gameState = new GameState(gameId, startingPile.stickCount(), List.copyOf(gameLog), null );
         return computerMakesMove(gameState,  game);
     }
 
     @Transactional
-    public GameStateDTO makeMove(Long gameId, MoveDTO moveDto) {
+    public GameState makeMove(Long gameId, int sticksToTake) {
         var game = gameRepository.findById(gameId);
 
-        GameStateDTO gameStateAfterHumanMove = humanMakesMove(moveDto, game);
+        GameState gameStateAfterHumanMove = humanMakesMove(sticksToTake, game);
 
         if (gameStateAfterHumanMove.winner() != null) {
             return getGameOverGameState(gameStateAfterHumanMove);
         }
 
-        GameStateDTO gameStateAfterComMove = computerMakesMove(gameStateAfterHumanMove, game);
+        GameState gameStateAfterComMove = computerMakesMove(gameStateAfterHumanMove, game);
 
         if (gameStateAfterComMove.winner() != null) {
             return getGameOverGameState(gameStateAfterComMove);
@@ -77,34 +74,34 @@ public class GameService {
         return gameStateAfterComMove;
     }
 
-    private GameStateDTO humanMakesMove(MoveDTO moveDto, Game game) {
+    private GameState humanMakesMove(int sticksToTake, Game game) {
         var gamelog = new ArrayList<String>();
-        var move = new Move(PlayerType.HUMAN, moveDto.sticksToTake());
+        var move = new Move(PlayerType.HUMAN, sticksToTake);
 
         Pile pileAfterHumanMove = game.applyMove(move);
-        gamelog.add(HUMAN_PLAYER_TURN.format(move.sticksToTake()));
+        gamelog.add(HUMAN_PLAYER_TURN.format(sticksToTake));
 
-        return new GameStateDTO(game.id, pileAfterHumanMove.stickCount(), List.copyOf(gamelog), game.getWinner());
+        return new GameState(game.id, pileAfterHumanMove.stickCount(), List.copyOf(gamelog), game.getWinner());
     }
 
-    private GameStateDTO computerMakesMove(GameStateDTO gameState, Game game) {
+    private GameState computerMakesMove(GameState gameState, Game game) {
         var gamelog = new ArrayList<>(gameState.gamelog());
         var comMove = game.createStrategy().makeMove(game.getPile());
 
         var pileAfterComMove = game.applyMove(comMove);
         gamelog.add(COM_PLAYER_TURN.format(comMove.sticksToTake()));
 
-        return new GameStateDTO(gameState.gameId(), pileAfterComMove.stickCount(), List.copyOf(gamelog),
+        return new GameState(gameState.gameId(), pileAfterComMove.stickCount(), List.copyOf(gamelog),
             game.getWinner());
     }
 
-    private GameStateDTO getGameOverGameState(GameStateDTO gameState) {
+    private GameState getGameOverGameState(GameState gameState) {
         var gamelog = new ArrayList<>(gameState.gamelog());
         switch (gameState.winner()) {
             case HUMAN -> gamelog.add(HUMAN_PLAYER_WON.format());
             case COM -> gamelog.add(CON_PLAYER_WON.format());
         }
-        return new GameStateDTO(gameState.gameId(), gameState.stickCount(), List.copyOf(gamelog), gameState.winner());
+        return new GameState(gameState.gameId(), gameState.stickCount(), List.copyOf(gamelog), gameState.winner());
     }
 
 }

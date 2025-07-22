@@ -1,8 +1,5 @@
 package com.theof.nimgame.application;
 
-import com.theof.nimgame.api.GameStateDTO;
-import com.theof.nimgame.api.MoveDTO;
-import com.theof.nimgame.api.SettingsDTO;
 import com.theof.nimgame.domain.Game;
 import com.theof.nimgame.domain.PlayerType;
 import com.theof.nimgame.infrastructure.GameRepository;
@@ -50,11 +47,11 @@ class GameServiceTest {
         @Test
         void game_is_created_and_persisted() {
             // given
-            var validSettings = new SettingsDTO("random");
+            final var VALID_STRATEGY_NAME = "random";
             List<Game> oldGames = gameRepository.listAll();
 
             // when
-            Long id = testee.createGame(validSettings);
+            Long id = testee.createGame(VALID_STRATEGY_NAME);
 
             // then
             Game persistedGame = gameRepository.findById(id);
@@ -76,12 +73,12 @@ class GameServiceTest {
         @Test
         void game_with_invalid_settings_is_not_persisted() {
             // given
-            var validSettings = new SettingsDTO("llm");
+            final var INVALID_STRATEGY_NAME = "llm";
             List<Game> oldGames = gameRepository.listAll();
 
             // when
             assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-                testee.createGame(validSettings);
+                testee.createGame(INVALID_STRATEGY_NAME);
 
                 // then
             }).withMessage("Unknown strategy: llm");
@@ -96,15 +93,15 @@ class GameServiceTest {
         @Test
         void human_player_first() {
             // given
-            final Long gameId = -3L;
+            final var GAME_ID = -3L;
 
             // when
-            var gameState = testee.startGame(gameId, true);
-            Game gameAfterStart = gameRepository.findById(gameId);
+            var gameState = testee.startGame(GAME_ID, true);
+            Game gameAfterStart = gameRepository.findById(GAME_ID);
 
             // then
             assertThat(gameState).isNotNull();
-            assertThat(gameState.gameId()).isEqualTo(gameId);
+            assertThat(gameState.gameId()).isEqualTo(GAME_ID);
             assertThat(gameState.stickCount()).isEqualTo(NUM_STARTING_STICKS);
             assertThat(gameState.gamelog()).contains(GAME_STARTED.format(), HUMAN_PLAYER_STARTS.format());
             assertThat(gameState.gamelog()).doesNotContain(COM_PLAYER_STARTS.format());
@@ -119,17 +116,17 @@ class GameServiceTest {
         @Test
         void computer_player_first() {
             // given
-            final Long gameId = -4L;
+            final var GAME_ID = -4L;
 
             // when
-            var gameState = testee.startGame(gameId, false);
+            var gameState = testee.startGame(GAME_ID, false);
 
             // then
             var stickDifference = NUM_STARTING_STICKS - gameState.stickCount();
-            Game gameAfterStart = gameRepository.findById(gameId);
+            Game gameAfterStart = gameRepository.findById(GAME_ID);
 
             assertThat(gameState).isNotNull();
-            assertThat(gameState.gameId()).isEqualTo(gameId);
+            assertThat(gameState.gameId()).isEqualTo(GAME_ID);
             assertThat(gameState.stickCount()).isNotEqualTo(NUM_STARTING_STICKS);
             assertThat(gameState.gamelog()).contains(GAME_STARTED.format(), COM_PLAYER_STARTS.format(),
                 COM_PLAYER_TURN.format(stickDifference));
@@ -150,20 +147,20 @@ class GameServiceTest {
         @Test
         void human_player_move_is_valid() {
             // given
-            final Long gameId = -5L;
-            var moveToMake = new MoveDTO(3);
+            final var GAME_ID = -5L;
+            final var STICKS_TO_TAKE = 3;
 
             // when
-            GameStateDTO gameState = testee.makeMove(gameId, moveToMake);
+            GameState gameState = testee.makeMove(GAME_ID, STICKS_TO_TAKE);
 
             // then
-            Game gameAfterMove = gameRepository.findById(gameId);
-            var numSticksComputerMove = NUM_STARTING_STICKS - moveToMake.sticksToTake() - gameState.stickCount();
+            Game gameAfterMove = gameRepository.findById(GAME_ID);
+            var numSticksComputerMove = NUM_STARTING_STICKS - STICKS_TO_TAKE - gameState.stickCount();
 
             assertThat(gameState).isNotNull();
-            assertThat(gameState.gameId()).isEqualTo(gameId);
+            assertThat(gameState.gameId()).isEqualTo(GAME_ID);
             assertThat(gameState.stickCount()).isBetween(7, 9);
-            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(moveToMake.sticksToTake()),
+            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(STICKS_TO_TAKE),
                 COM_PLAYER_TURN.format(numSticksComputerMove));
 
             assertThat(gameAfterMove)
@@ -175,16 +172,16 @@ class GameServiceTest {
         @Test
         void human_player_move_is_invalid() {
             // given
-            final Long gameId = -6L;
-            var moveToMake = new MoveDTO(10);
+            final var GAME_ID = -6L;
+            final var STICKS_TO_TAKE = 10;
 
             // when
             assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-                GameStateDTO gameState = testee.makeMove(gameId, moveToMake);
+                GameState gameState = testee.makeMove(GAME_ID, STICKS_TO_TAKE);
 
                 // then
                 assertThat(gameState).isNull();
-                Game gameAfterMove = gameRepository.findById(gameId);
+                Game gameAfterMove = gameRepository.findById(GAME_ID);
 
                 assertThat(gameAfterMove)
                     .extracting("pile")
@@ -200,19 +197,19 @@ class GameServiceTest {
         @Test
         void human_player_loses() {
             // given
-            final Long gameId = -9L;
-            var moveToMake = new MoveDTO(1);
+            final var GAME_ID = -9L;
+            final var STICKS_TO_TAKE = 1;
 
             // when
-            GameStateDTO gameState = testee.makeMove(gameId, moveToMake);
+            GameState gameState = testee.makeMove(GAME_ID, STICKS_TO_TAKE);
 
             // then
-            Game gameAfterMove = gameRepository.findById(gameId);
+            Game gameAfterMove = gameRepository.findById(GAME_ID);
 
             assertThat(gameState).isNotNull();
-            assertThat(gameState.gameId()).isEqualTo(gameId);
+            assertThat(gameState.gameId()).isEqualTo(GAME_ID);
             assertThat(gameState.stickCount()).isEqualTo(0);
-            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(moveToMake.sticksToTake()),
+            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(STICKS_TO_TAKE),
                 CON_PLAYER_WON.format());
 
             assertThat(gameAfterMove)
@@ -225,19 +222,19 @@ class GameServiceTest {
         @Test
         void human_player_wins() {
             // given
-            final Long gameId = -10L;
-            var moveToMake = new MoveDTO(1);
+            final var GAME_ID = -10L;
+            final var STICKS_TO_TAKE = 1;
 
             // when
-            GameStateDTO gameState = testee.makeMove(gameId, moveToMake);
+            GameState gameState = testee.makeMove(GAME_ID, STICKS_TO_TAKE);
 
             // then
-            Game gameAfterMove = gameRepository.findById(gameId);
+            Game gameAfterMove = gameRepository.findById(GAME_ID);
 
             assertThat(gameState).isNotNull();
-            assertThat(gameState.gameId()).isEqualTo(gameId);
+            assertThat(gameState.gameId()).isEqualTo(GAME_ID);
             assertThat(gameState.stickCount()).isEqualTo(0);
-            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(moveToMake.sticksToTake()), HUMAN_PLAYER_WON.format());
+            assertThat(gameState.gamelog()).contains(HUMAN_PLAYER_TURN.format(STICKS_TO_TAKE), HUMAN_PLAYER_WON.format());
 
             assertThat(gameAfterMove)
                 .extracting("pile")
@@ -249,17 +246,17 @@ class GameServiceTest {
         @Test
         void no_moves_after_game_ended() {
             // given
-            final Long gameId = -11L;
-            var moveToMake = new MoveDTO(2);
+            final var GAME_ID = -11L;
+            final var STICKS_TO_TAKE = 2;
 
             // when
             assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-                GameStateDTO gameState = testee.makeMove(gameId, moveToMake);
+                GameState gameState = testee.makeMove(GAME_ID, STICKS_TO_TAKE);
 
                 // then
                 assertThat(gameState).isNull();
 
-                Game gameAfterMove = gameRepository.findById(gameId);
+                Game gameAfterMove = gameRepository.findById(GAME_ID);
 
                 assertThat(gameAfterMove)
                     .extracting("pile")

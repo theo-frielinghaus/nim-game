@@ -12,6 +12,7 @@ import static com.theof.nimgame.application.GamelogTemplate.HUMAN_PLAYER_WON;
 import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
@@ -36,7 +37,8 @@ class GameResourceTest {
         .then()
             .statusCode(200)
             .body("stickCount", is(oneOf(13, 12, 11, 10)))
-            .body("gamelog", hasItem(GAME_STARTED.format()));
+            .body("gamelog", hasItem(GAME_STARTED.format()))
+            .body("winner", is(emptyString()));
     }
 
     @Test
@@ -66,7 +68,8 @@ class GameResourceTest {
         .then()
             .statusCode(200)
             .body("stickCount", is(oneOf(9, 8, 7)))
-            .body("gamelog", hasItem(HUMAN_PLAYER_TURN.format(validMove.sticksToTake())));
+            .body("gamelog", hasItem(HUMAN_PLAYER_TURN.format(validMove.sticksToTake())))
+            .body("winner", is(emptyString()));
     }
 
     @Test
@@ -97,7 +100,8 @@ class GameResourceTest {
         .then()
             .statusCode(200)
             .body("stickCount", is(0))
-            .body("gamelog", hasItem(HUMAN_PLAYER_WON.format()));
+            .body("gamelog", hasItem(HUMAN_PLAYER_WON.format()))
+            .body("winner", is("Human player"));
     }
 
     @Test

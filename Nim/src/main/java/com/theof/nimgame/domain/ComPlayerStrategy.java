@@ -1,7 +1,7 @@
 package com.theof.nimgame.domain;
 
 
-public interface ComPlayerStrategy {
+ public interface ComPlayerStrategy {
 
     Move makeMove(Pile pile);
 
