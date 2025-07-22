@@ -37,16 +37,16 @@ public class GameService {
     public GameState startGame(Long gameId, boolean hasHumanPlayerFirstTurn) {
         var gameLog = new ArrayList<String>();
         var game = gameRepository.findById(gameId);
-        var sticksOnPileCount = game.getStickCount();
+        var stickCount = game.getStickCount();
         gameLog.add(GAME_STARTED.format());
 
         if (hasHumanPlayerFirstTurn) {
             gameLog.add(HUMAN_PLAYER_STARTS.format());
-            return new GameState(gameId, sticksOnPileCount, List.copyOf(gameLog), null);
+            return new GameState(gameId, stickCount, List.copyOf(gameLog), null);
         }
 
         gameLog.add(COM_PLAYER_STARTS.format());
-        var gameStateAtStart = new GameState(gameId, sticksOnPileCount, List.copyOf(gameLog), null);
+        var gameStateAtStart = new GameState(gameId, stickCount, List.copyOf(gameLog), null);
 
         return makeComMove(gameStateAtStart, game);
     }

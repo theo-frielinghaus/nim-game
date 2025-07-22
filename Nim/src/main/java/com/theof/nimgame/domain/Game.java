@@ -25,14 +25,14 @@ public class Game extends PanacheEntity {
     public Game() {
     }
 
-    public Game(@Nonnull String comPlayerStrategyName, int startingSticksOnPile) {
+    public Game(@Nonnull String comPlayerStrategyName, int stickCount) {
         this.comPlayerStrategyName = comPlayerStrategyName;
-        this.pile = new Pile(startingSticksOnPile);
+        this.pile = new Pile(stickCount);
         winner = null;
         ComPlayerStrategy.fromType(this.comPlayerStrategyName); //to validate strategyName before persist
     }
 
-    public int getStickCountOnPile() {
+    public int getStickCount() {
         return pile.stickCount();
     }
 
