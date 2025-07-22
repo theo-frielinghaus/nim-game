@@ -117,6 +117,21 @@ class GameResourceTest {
     }
 
     @Test
+    void no_move_on_non_existent_game() {
+        var invalidMove = new MoveDTO(3);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(invalidMove)
+            .pathParam("gameID", -666)
+        .when()
+            .put("/{gameID}")
+        .then()
+            .statusCode(404)
+            .body(containsString("Game with id -666 doesn't exist." ));
+    }
+
+    @Test
     void after_last_possible_turn_game_is_ended() {
         var validMove = new MoveDTO(1);
 

@@ -33,10 +33,18 @@ public class GameService {
         return game.id;
     }
 
+    public GameState getGameState(long gameId) {
+        var game = gameRepository.findById(gameId);
+        if (game == null) throw new NotFoundException(String.format("Game with id %d doesn't exist.", gameId));
+        return new GameState(gameId, game.getStickCount(), List.of(), game.getWinner());
+    }
+
     @Transactional
     public GameState startGame(Long gameId, boolean hasHumanPlayerFirstTurn) {
         var gameLog = new ArrayList<String>();
         var game = gameRepository.findById(gameId);
+        if(game == null) throw new NotFoundException(String.format("Game with id %d doesn't exist.", gameId));
+
         var stickCount = game.getStickCount();
         gameLog.add(GAME_STARTED.format());
 
@@ -54,6 +62,7 @@ public class GameService {
     @Transactional
     public GameState makeMove(Long gameId, int sticksToTake) {
         var game = gameRepository.findById(gameId);
+        if (game == null) throw new NotFoundException(String.format("Game with id %d doesn't exist.", gameId));
 
         GameState gameStateAfterHumanMove = makeHumanMove(sticksToTake, game);
 
@@ -101,11 +110,5 @@ public class GameService {
             case COM -> gamelog.add(CON_PLAYER_WON.format());
         }
         return new GameState(gameState.gameId(), gameState.stickCount(), List.copyOf(gamelog), gameState.winner());
-    }
-
-    public GameState getGameState(long gameId) {
-        var game = gameRepository.findById(gameId);
-        if (game == null) throw new NotFoundException(String.format("Game with id %d doesn't exist.", gameId));
-        return new GameState(gameId, game.getStickCount(), List.of(), game.getWinner());
     }
 }
