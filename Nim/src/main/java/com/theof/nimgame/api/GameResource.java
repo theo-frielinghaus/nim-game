@@ -12,6 +12,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 import static com.theof.nimgame.api.GameStateMapper.gameStateDTOFrom;
@@ -21,22 +25,40 @@ public class GameResource {
     @Inject
     GameService gameService;
 
+
+
     @POST
     @Operation(
         summary = "Create and start a new game",
         description = """
             Creates a game using the provided settings. \n
-            Current available computer player strategys are {"comStrategy": "random" || "optimal"}.\n
-            Returns the game state at the start of the game, with the gameID that is needed to make moves.\n
-            If computer starts the game, they already start with their own move, which will be reflected in game state.
-            
+            If computer starts the game, they already start with their own move.
             """
     )
+    @APIResponses(value = {
+        @APIResponse(
+            responseCode = "200",
+            description = "Game state after creating and starting the game and, if computer player has first turn, after computer move.",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = GameStateDTO.class)
+            )
+        ),
+        @APIResponse(
+            responseCode = "400",
+            description = "Invalid game settings (unknown strategy).",
+            content = @Content(
+                mediaType = "text/plain"
+            )
+        )})
     public GameStateDTO startGame(SettingsDTO settings) {
         Long gameId = gameService.createGame(settings.comStrategy());
         GameState gameState = gameService.startGame(gameId, settings.hasHumanPlayerFirstTurn());
         return gameStateDTOFrom(gameState);
     }
+
+
+
 
     @PUT
     @Path("{gameID}")
@@ -44,17 +66,46 @@ public class GameResource {
         summary = "Make a Move",
         description = """
             Makes a move with provided number of sticks to take for a running game. \n
-            Legal move is an amount of sticks to take between 1-3 that is not bigger than current stick count. \n
-            The computer reacts immediately with their own move, included in returned game state. \n
-            If a move ends a game, the winner will be included in game state.\n
-            The log included in gamestate gives additional information about computer player moves.\n
-            
             """
     )
+    @APIResponses(value = {
+        @APIResponse(
+            responseCode = "200",
+            description = "Game state after performing the move and computer response.",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = GameStateDTO.class)
+            )
+        ),
+        @APIResponse(
+            responseCode = "400",
+            description = "Invalid move (e.g. too many sticks, more sticks than on pile, etc. ).",
+            content = @Content(
+                mediaType = "text/plain"
+            )
+        ),
+        @APIResponse(
+            responseCode = "409",
+            description = "Game is already over.",
+            content = @Content(
+                mediaType = "text/plain"
+            )
+        ),
+        @APIResponse(
+            responseCode = "404",
+            description = "Game not found.",
+            content = @Content(
+                mediaType = "text/plain"
+            )
+        )
+    })
     public GameStateDTO makeMove(@PathParam("gameID") Long gameID, MoveDTO move) {
         GameState gameState = gameService.makeMove(gameID, move.sticksToTake());
         return gameStateDTOFrom(gameState);
     }
+
+    
+
 
     @GET
     @Path("{gameID}")
@@ -64,10 +115,29 @@ public class GameResource {
             Retrieves the current state of game;
             """
     )
+    @APIResponses(value = {
+        @APIResponse(
+            responseCode = "200",
+            description = "Current state of game",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = GameStateDTO.class)
+            )
+        ),
+        @APIResponse(
+            responseCode = "404",
+            description = "Game not found.",
+            content = @Content(
+                mediaType = "text/plain"
+            )
+        )
+    })
     public GameStateDTO getCurrentGameState(@PathParam("gameID") Long gameID) {
         GameState gameState = gameService.getGameState(gameID);
         return gameStateDTOFrom(gameState);
     }
+
+
 
     @ServerExceptionMapper({IllegalArgumentException.class})
     public Response handleIllegalArgument(IllegalArgumentException ex) {
